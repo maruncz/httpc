@@ -27,40 +27,12 @@ ensure_int(${HTTPC_CONNECTION_ATTEMPTS})
 ensure_int(${HTTPC_REDIRECT_MAX})
 ensure_int(${HTTPC_MAX_HEADER})
 
-if(WIN32)
-    set(HTTPC_PLATFORM_SRCS
-        win.c)
-    add_library(httpc_platform STATIC ${HTTPC_PLATFORM_SRCS})
-    target_compile_definitions(httpc_platform PRIVATE USE_SSL=$<BOOL:${HTTPC_USE_SSL}>)
-    set_property(TARGET httpc_platform PROPERTY C_STANDARD 99)
-    set_property(TARGET httpc_platform PROPERTY C_STANDARD_REQUIRED ON)
-    set_property(TARGET httpc_platform PROPERTY C_EXTENSIONS OFF)
-endif()
-
-if(UNIX)
-    set(HTTPC_PLATFORM_SRCS
-        unix.c)
-    add_library(httpc_platform STATIC ${HTTPC_PLATFORM_SRCS})
-    target_compile_definitions(httpc_platform PRIVATE USE_SSL=$<BOOL:${HTTPC_USE_SSL}>)
-    set_property(TARGET httpc_platform PROPERTY C_STANDARD 99)
-    set_property(TARGET httpc_platform PROPERTY C_STANDARD_REQUIRED ON)
-    set_property(TARGET httpc_platform PROPERTY C_EXTENSIONS ON)
-endif()
-
-if(${HTTPC_USE_SSL})
-    find_package(OpenSSL REQUIRED)
-    target_link_libraries(httpc_platform PRIVATE OpenSSL::SSL)
-endif()
-
-
-
 set(HTTPC_LIB_SRCS
     httpc.c
     httpc.h
     localely.h)
 
 add_library(httpc_lib STATIC ${HTTPC_LIB_SRCS})
-target_link_libraries(httpc_lib PRIVATE httpc_platform)
 target_include_directories(httpc_lib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_definitions(httpc_lib
     PUBLIC
@@ -79,6 +51,30 @@ set_property(TARGET httpc_lib PROPERTY C_STANDARD 99)
 set_property(TARGET httpc_lib PROPERTY C_STANDARD_REQUIRED ON)
 set_property(TARGET httpc_lib PROPERTY C_EXTENSIONS OFF)
 
+if(WIN32 OR UNIX)
+if(WIN32)
+    set(HTTPC_PLATFORM_SRCS
+        win.c)
+    add_library(httpc_platform STATIC ${HTTPC_PLATFORM_SRCS})
+    set_property(TARGET httpc_platform PROPERTY C_EXTENSIONS OFF)
+elseif(UNIX)
+    set(HTTPC_PLATFORM_SRCS
+        unix.c)
+    add_library(httpc_platform STATIC ${HTTPC_PLATFORM_SRCS})
+
+    set_property(TARGET httpc_platform PROPERTY C_EXTENSIONS ON)
+endif()
+
+target_compile_definitions(httpc_platform PRIVATE USE_SSL=$<BOOL:${HTTPC_USE_SSL}>)
+set_property(TARGET httpc_platform PROPERTY C_STANDARD 99)
+set_property(TARGET httpc_platform PROPERTY C_STANDARD_REQUIRED ON)
+
+if(${HTTPC_USE_SSL})
+    find_package(OpenSSL REQUIRED)
+    target_link_libraries(httpc_platform PRIVATE OpenSSL::SSL)
+endif()
+target_link_libraries(httpc_lib PRIVATE httpc_platform)
+endif()
 
 set(HTTPC_MAIN_SRCS
     main.c)

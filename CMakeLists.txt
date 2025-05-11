@@ -61,6 +61,7 @@ set(HTTPC_LIB_SRCS
 
 add_library(httpc_lib STATIC ${HTTPC_LIB_SRCS})
 target_link_libraries(httpc_lib PRIVATE httpc_platform)
+target_include_directories(httpc_lib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_definitions(httpc_lib
     PUBLIC
     HTTPC_VERSION="${PROJECT_VERSION}"
